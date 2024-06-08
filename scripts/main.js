@@ -1,41 +1,37 @@
 async function downloadVideo() {
     const videoUrl = document.getElementById('videoUrl').value;
-    if (videoUrl) {
-        try {
-            const y2mateUrl = `https://www.y2mate.com/mates/en68/analyze/ajax?url=${encodeURIComponent(videoUrl)}&q_auto=0&ajax=1`;
-            const response = await fetch(y2mateUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                }
-            });
-            console.log('Response status:', response.status);
-            console.log('Response status text:', response.statusText);
+    const videoId = extractVideoId(videoUrl);
+    if (videoId) {
+        const data = null;
 
-            const data = await response.json();
-            console.log('Response data:', data);
+        const xhr = new XMLHttpRequest();
+        xhr.withCredentials = true;
 
-            if (data.status === 'ok') {
-                const links = data.links;
-                if (links && links.mp4) {
-                    const qualities = Object.keys(links.mp4);
-                    if (qualities.length > 0) {
-                        const downloadUrl = links.mp4[qualities[0]].url;  // Select the first available quality
-                        window.location.href = downloadUrl;
-                    } else {
-                        alert('No downloadable links found.');
-                    }
+        xhr.addEventListener('readystatechange', function () {
+            if (this.readyState === this.DONE) {
+                console.log(this.responseText);
+                const response = JSON.parse(this.responseText);
+                if (response && response.streams && response.streams.length > 0) {
+                    const downloadUrl = response.streams[0].url;  // Get the first stream's URL
+                    window.location.href = downloadUrl;
                 } else {
-                    alert('Failed to retrieve download links.');
+                    alert('Failed to retrieve download link.');
                 }
-            } else {
-                alert('Failed to download video.');
             }
-        } catch (error) {
-            console.error('Error:', error);
-            alert('Error: ' + error.message);
-        }
+        });
+
+        xhr.open('GET', `https://youtube-media-downloader.p.rapidapi.com/v2/video/details?videoId=${videoId}`);
+        xhr.setRequestHeader('x-rapidapi-key', '2728d791f9mshb8671fa21485b82p1dcb7ajsnb42dd990814e');
+        xhr.setRequestHeader('x-rapidapi-host', 'youtube-media-downloader.p.rapidapi.com');
+
+        xhr.send(data);
     } else {
-        alert('Please enter a video URL.');
+        alert('Please enter a valid YouTube video URL.');
     }
+}
+
+function extractVideoId(url) {
+    const regex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+    const match = url.match(regex);
+    return match ? match[1] : null;
 }
