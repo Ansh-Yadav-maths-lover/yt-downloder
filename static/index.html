@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Video Downloader</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f0;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            width: 80%;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        h1 {
+            margin-bottom: 20px;
+        }
+        input[type="text"] {
+            width: calc(100% - 80px);
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px 0 0 5px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 0 5px 5px 0;
+            cursor: pointer;
+        }
+        #video-details {
+            margin-top: 20px;
+            display: none; /* Hide video details initially */
+        }
+        #download-options {
+            margin-bottom: 20px;
+        }
+        .btn {
+            padding: 10px 20px;
+            margin-right: 10px;
+            text-decoration: none;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .btn-primary {
+            background-color: #007bff;
+        }
+        .btn-secondary {
+            background-color: #6c757d;
+        }
+        a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>YouTube Video Downloader</h1>
+        <form id="download-form">
+            <input type="text" id="video-url" placeholder="Enter YouTube video URL" required>
+            <button type="submit">Submit</button>
+        </form>
+        <div id="video-details">
+            <h2 id="video-title"></h2>
+            <p id="video-description"></p>
+            <div id="download-options"></div>
+        </div>
+    </div>
+    <script>
+        document.getElementById('download-form').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const videoUrl = document.getElementById('video-url').value.trim();
+            const apiUrl = `/download?videoUrl=${encodeURIComponent(videoUrl)}`;
+
+            try {
+                const response = await fetch(apiUrl);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                displayVideoDetails(result);
+
+            } catch (error) {
+                console.error('Error details:', error);
+                alert('An error occurred. Please try again later.');
+            }
+        });
+
+        function displayVideoDetails(video) {
+            document.getElementById('video-title').textContent = video.title;
+            document.getElementById('video-description').textContent = video.description;
+
+            const downloadOptionsDiv = document.getElementById('download-options');
+            downloadOptionsDiv.innerHTML = '';
+
+            const downloadLink = document.createElement('a');
+            downloadLink.href = video.downloadUrl;
+            downloadLink.textContent = 'Download Video';
+            downloadLink.classList.add('btn', 'btn-primary', 'mr-2');
+            downloadOptionsDiv.appendChild(downloadLink);
+
+            const watchLink = document.createElement('a');
+            watchLink.href = video.watchUrl;
+            watchLink.textContent = 'Watch on Web';
+            watchLink.classList.add('btn', 'btn-secondary');
+            downloadOptionsDiv.appendChild(watchLink);
+
+            document.getElementById('video-details').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
